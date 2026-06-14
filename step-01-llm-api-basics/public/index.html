@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Step 01 — Your First LLM API Call</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <div class="breadcrumb">RAG from Scratch / Step 01</div>
+      <h1>Your First LLM API Call</h1>
+      <p class="subtitle">Fire a real request at the Anthropic API and inspect every part of the request/response cycle.</p>
+    </header>
+
+    <!-- REQUEST BUILDER -->
+    <section class="card">
+      <h2>Build the request</h2>
+
+      <div class="two-col">
+        <div class="field">
+          <label for="system">System prompt <span class="hint">— shapes the AI's personality &amp; behavior</span></label>
+          <textarea id="system" rows="4">You are a concise technical assistant. Explain concepts clearly in 2-3 sentences max.</textarea>
+        </div>
+
+        <div class="params">
+          <div class="field">
+            <label for="model">model</label>
+            <select id="model">
+              <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
+              <option value="claude-haiku-4-5-20251001">claude-haiku-4-5-20251001</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="max_tokens">max_tokens <span id="max_tokens_val" class="hint">200</span></label>
+            <input type="range" id="max_tokens" min="50" max="1000" step="50" value="200" />
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="userMsg">User message</label>
+        <textarea id="userMsg" rows="2">What is a token in the context of LLMs?</textarea>
+      </div>
+
+      <button id="sendBtn" onclick="sendRequest()">Send request →</button>
+    </section>
+
+    <!-- RAW REQUEST -->
+    <section class="card" id="requestPanel" hidden>
+      <div class="card-header">
+        <h2>Raw request</h2>
+        <span class="badge badge-gray">POST /v1/messages</span>
+      </div>
+      <pre class="code-block" id="requestBox"></pre>
+    </section>
+
+    <!-- RESPONSE -->
+    <section class="card" id="responsePanel" hidden>
+      <div class="card-header">
+        <h2>Response</h2>
+        <span id="statusBadge" class="badge badge-gray">—</span>
+      </div>
+
+      <div class="response-text" id="responseText">Waiting…</div>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-val" id="inputTokens">—</span>
+          <span class="stat-label">input tokens</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="outputTokens">—</span>
+          <span class="stat-label">output tokens</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="latency">—</span>
+          <span class="stat-label">latency (ms)</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="stopReason">—</span>
+          <span class="stat-label">stop_reason</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANATOMY -->
+    <section class="card" id="anatomyPanel" hidden>
+      <h2>Response anatomy — what each field means</h2>
+      <div class="annotations">
+        <div class="annotation">
+          <code>content[0].text</code>
+          <p>The actual answer. This is the one line you extract in every AI app.</p>
+        </div>
+        <div class="annotation">
+          <code>usage.input_tokens</code>
+          <p>Tokens counted from your system prompt + all messages. This is what you pay for on input.</p>
+        </div>
+        <div class="annotation">
+          <code>usage.output_tokens</code>
+          <p>Tokens generated in the reply. Usually costs more per token than input.</p>
+        </div>
+        <div class="annotation">
+          <code>stop_reason</code>
+          <p><strong>end_turn</strong> = natural finish. <strong>max_tokens</strong> = answer got cut off — raise max_tokens or shorten your prompt.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- RAW RESPONSE JSON -->
+    <section class="card" id="rawJsonPanel" hidden>
+      <div class="card-header">
+        <h2>Full raw response JSON</h2>
+        <button class="btn-small" onclick="toggleRaw()">toggle</button>
+      </div>
+      <pre class="code-block" id="rawJson" hidden></pre>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
