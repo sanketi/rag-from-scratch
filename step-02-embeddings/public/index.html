@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Step 02 — Embeddings &amp; Semantic Similarity</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <div class="breadcrumb">RAG from Scratch / Step 02</div>
+      <h1>Embeddings &amp; Semantic Similarity</h1>
+      <p class="subtitle">Convert phrases to vectors with CIS, then see which ones are semantically close — the core mechanic behind retrieval.</p>
+    </header>
+
+    <!-- INPUT -->
+    <section class="card">
+      <h2>Phrases to embed</h2>
+      <p class="card-desc">One phrase per line. Similar meaning → similar vectors → high cosine similarity.</p>
+
+      <div class="two-col">
+        <div class="field">
+          <label for="phrases">Input texts</label>
+          <textarea id="phrases" rows="8">Lawyer
+Attorney
+Doctor
+Python programming
+Software developer
+Banana</textarea>
+        </div>
+
+        <div class="params">
+          <div class="field">
+            <label for="model">Embedding model <span class="hint">provider/model</span></label>
+            <select id="model">
+              <option value="workday|msmarco_distilbert_multilingual">workday/msmarco_distilbert_multilingual</option>
+              <option value="echo|echo">echo/echo (smoke test)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Quick presets</label>
+            <div class="preset-btns">
+              <button type="button" class="btn-small" onclick="loadPreset('legal')">Legal synonyms</button>
+              <button type="button" class="btn-small" onclick="loadPreset('tech')">Tech roles</button>
+              <button type="button" class="btn-small" onclick="loadPreset('mixed')">Mixed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button id="embedBtn" onclick="embedPhrases()">Embed phrases →</button>
+    </section>
+
+    <!-- RAW REQUEST -->
+    <section class="card" id="requestPanel" hidden>
+      <div class="card-header">
+        <h2>Raw request</h2>
+        <span class="badge badge-gray">POST /v1alpha1/predictions</span>
+      </div>
+      <pre class="code-block" id="requestBox"></pre>
+    </section>
+
+    <!-- STATS -->
+    <section class="card" id="statsPanel" hidden>
+      <div class="card-header">
+        <h2>Embedding stats</h2>
+        <span id="statusBadge" class="badge badge-gray">—</span>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-val" id="phraseCount">—</span>
+          <span class="stat-label">phrases</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="dimensions">—</span>
+          <span class="stat-label">dimensions</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="latency">—</span>
+          <span class="stat-label">latency (ms)</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="modelUsed">—</span>
+          <span class="stat-label">model</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIMILARITY MATRIX -->
+    <section class="card" id="matrixPanel" hidden>
+      <h2>Cosine similarity matrix</h2>
+      <p class="card-desc">1.0 = identical direction · 0.0 = unrelated. Diagonal is always 1.0 (each phrase vs itself).</p>
+      <div class="matrix-wrap" id="matrixWrap"></div>
+
+      <h3 class="subheading">Top similar pairs</h3>
+      <div id="topPairs" class="pair-list"></div>
+    </section>
+
+    <!-- VECTOR PREVIEW -->
+    <section class="card" id="vectorsPanel" hidden>
+      <h2>Vector preview</h2>
+      <p class="card-desc">Each phrase becomes a long array of floats. Only the first 8 dimensions shown — the rest capture finer semantic nuance.</p>
+      <div id="vectorList" class="vector-list"></div>
+    </section>
+
+    <!-- ANATOMY -->
+    <section class="card" id="anatomyPanel" hidden>
+      <h2>What just happened — key concepts</h2>
+      <div class="annotations">
+        <div class="annotation">
+          <code>embed-text-v1</code>
+          <p>CIS task that turns text into dense vectors. Same API you'll use in production RAG pipelines.</p>
+        </div>
+        <div class="annotation">
+          <code>prediction.output.embeddings</code>
+          <p>Array of float arrays — one vector per input phrase. Typical size: 384–768 dimensions.</p>
+        </div>
+        <div class="annotation">
+          <code>cosine similarity</code>
+          <p>Measures the angle between two vectors. Synonyms cluster together even though the raw text differs.</p>
+        </div>
+        <div class="annotation">
+          <code>normalize_embeddings: true</code>
+          <p>Scales vectors to unit length so cosine similarity = dot product. Standard for retrieval.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- RAW JSON -->
+    <section class="card" id="rawJsonPanel" hidden>
+      <div class="card-header">
+        <h2>Full raw response JSON</h2>
+        <button class="btn-small" onclick="toggleRaw()">toggle</button>
+      </div>
+      <pre class="code-block" id="rawJson" hidden></pre>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
