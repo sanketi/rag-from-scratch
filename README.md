@@ -11,7 +11,7 @@ Each step is a standalone, runnable app that teaches one core concept.
 | Step | Concept | What you build |
 |------|---------|----------------|
 | **01** | LLM API basics | Fire your first API call, inspect request/response, understand tokens |
-| **02** | Embeddings _(coming soon)_ | Convert text to vectors, visualize semantic similarity |
+| **02** | Embeddings | Convert text to vectors, visualize semantic similarity |
 | **03** | Chunking _(coming soon)_ | Split documents intelligently for retrieval |
 | **04** | Vector search _(coming soon)_ | Store embeddings in ChromaDB, query by similarity |
 | **05** | RAG pipeline _(coming soon)_ | Connect retrieval → LLM synthesis end-to-end |
@@ -24,7 +24,9 @@ Each step is a standalone, runnable app that teaches one core concept.
 ## Prerequisites
 
 - Node.js 18+
-- An Anthropic API key — get one at [console.anthropic.com](https://console.anthropic.com/settings/keys)
+- Workday VPN + CIS access (eng environment — no API key approval needed)
+  - Docs: [Connecting to CIS](https://docs.ml.inday.io/cis/clients/connecting-to-the-cis/)
+  - See `step-01-llm-api-basics/README.md` for `/etc/hosts` setup
 
 ---
 
@@ -33,9 +35,19 @@ Each step is a standalone, runnable app that teaches one core concept.
 ```bash
 cd step-01-llm-api-basics
 npm install
-cp .env.example .env        # then add your ANTHROPIC_API_KEY
+cp .env.example .env
 npm start
 # open http://localhost:3000
+```
+
+## Quick start (Step 02)
+
+```bash
+cd step-02-embeddings
+npm install
+cp .env.example .env
+npm start
+# open http://localhost:3001
 ```
 
 ---
