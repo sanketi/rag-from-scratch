@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Step 03 — Chunking</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <div class="breadcrumb">RAG from Scratch / Step 03</div>
+      <h1>Chunking — Split Documents for Retrieval</h1>
+      <p class="subtitle">Before you can search a document with AI, you have to cut it into bite-sized pieces. This step shows you how — and why it matters.</p>
+    </header>
+
+    <!-- LESSON: step-by-step for beginners -->
+    <section class="card lesson">
+      <h2>Learn it in 5 steps</h2>
+      <ol class="lesson-steps">
+        <li>
+          <strong>Imagine a thick textbook.</strong> You can't memorize the whole thing for one test question. You make flashcards — one idea per card. <em>Chunking is making flashcards from a document.</em>
+        </li>
+        <li>
+          <strong>Each flashcard = one chunk.</strong> In RAG, chunks get turned into embeddings (Step 02) and stored in a database (Step 04).
+        </li>
+        <li>
+          <strong>When someone asks a question</strong>, the system finds the chunks that best match — like picking the right flashcards — and sends only those to the AI.
+        </li>
+        <li>
+          <strong>Chunk size matters.</strong> Too big → the AI wades through junk. Too small → sentences get cut in half and lose meaning.
+        </li>
+        <li>
+          <strong>Overlap helps.</strong> Repeating the last few words of chunk 1 at the start of chunk 2 so an idea never gets split across a boundary.
+        </li>
+      </ol>
+    </section>
+
+    <!-- INPUT -->
+    <section class="card">
+      <h2>Your document</h2>
+      <p class="card-desc">Paste text or load a sample. Then pick a splitting strategy and click Chunk it.</p>
+
+      <div class="field">
+        <label for="document">Document text</label>
+        <textarea id="document" rows="12"></textarea>
+      </div>
+
+      <div class="preset-btns">
+        <button type="button" class="btn-small" onclick="loadSample('pto')">Sample: PTO policy</button>
+        <button type="button" class="btn-small" onclick="loadSample('rag')">Sample: What is RAG?</button>
+      </div>
+
+      <div class="two-col">
+        <div class="field">
+          <label for="strategy">Chunking strategy</label>
+          <select id="strategy">
+            <option value="smart">Smart fixed-size (recommended)</option>
+            <option value="fixed">Fixed-size (raw character cut)</option>
+            <option value="paragraph">By paragraph</option>
+            <option value="sentence">By sentence</option>
+          </select>
+        </div>
+
+        <div class="params" id="sizeControls">
+          <div class="field">
+            <label for="chunkSize">Chunk size <span class="hint"><span id="chunkSizeVal">400</span> chars</span></label>
+            <input type="range" id="chunkSize" min="100" max="800" step="50" value="400" />
+          </div>
+          <div class="field">
+            <label for="overlap">Overlap <span class="hint"><span id="overlapVal">50</span> chars</span></label>
+            <input type="range" id="overlap" min="0" max="200" step="25" value="50" />
+          </div>
+        </div>
+      </div>
+
+      <button id="chunkBtn" onclick="chunkDocument()">Chunk it →</button>
+    </section>
+
+    <!-- STATS -->
+    <section class="card" id="statsPanel" hidden>
+      <h2>Chunk stats</h2>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-val" id="chunkCount">—</span>
+          <span class="stat-label">chunks created</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="docChars">—</span>
+          <span class="stat-label">document chars</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="avgChunk">—</span>
+          <span class="stat-label">avg chunk size</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="strategyUsed">—</span>
+          <span class="stat-label">strategy</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- HIGHLIGHTED DOCUMENT -->
+    <section class="card" id="docPanel" hidden>
+      <h2>Document with chunk colors</h2>
+      <p class="card-desc">Each color = one chunk. Click a chunk card below to highlight it here.</p>
+      <div class="doc-view" id="highlightedDoc"></div>
+    </section>
+
+    <!-- CHUNK CARDS -->
+    <section class="card" id="chunksPanel" hidden>
+      <h2>All chunks</h2>
+      <p class="card-desc">These are the pieces you'd embed and store. One row per chunk.</p>
+      <div id="chunkList" class="chunk-list"></div>
+    </section>
+
+    <!-- QUERY PREVIEW -->
+    <section class="card">
+      <h2>Try a question (mini retrieval preview)</h2>
+      <p class="card-desc">Type a question like a user would. We find chunks that contain matching words — Step 04 replaces this with embedding search.</p>
+      <div class="field">
+        <input type="text" id="testQuery" placeholder='e.g. "How many PTO days do I get?"' oninput="previewQuery()" />
+      </div>
+      <div id="queryPanel" hidden>
+        <h3 class="subheading">Matching chunks</h3>
+        <div id="queryResults"></div>
+      </div>
+    </section>
+
+    <!-- ANATOMY -->
+    <section class="card" id="anatomyPanel" hidden>
+      <h2>Strategy cheat sheet</h2>
+      <div class="annotations">
+        <div class="annotation">
+          <code>Smart fixed-size</code>
+          <p>Best default. Aim for ~400 chars but break at sentence ends so you don't cut mid-thought.</p>
+        </div>
+        <div class="annotation">
+          <code>Fixed-size</code>
+          <p>Cut every N characters exactly. Easy to understand, but can split "30" from "days" — try it to see the problem.</p>
+        </div>
+        <div class="annotation">
+          <code>By paragraph</code>
+          <p>One chunk per blank-line-separated block. Great when your doc is already well-structured.</p>
+        </div>
+        <div class="annotation">
+          <code>By sentence</code>
+          <p>One chunk per sentence. Very precise, but tiny chunks — more storage, more search noise.</p>
+        </div>
+        <div class="annotation">
+          <code>Overlap</code>
+          <p>If chunk 1 ends with "...refund policy is 30 days" and chunk 2 starts with "30 days for returns", the shared overlap means neither chunk loses the full idea.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+  <script>loadSample('pto');</script>
+</body>
+</html>

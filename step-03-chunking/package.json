@@ -1,0 +1,14 @@
+{
+  "name": "rag-step-03-chunking",
+  "version": "1.0.0",
+  "description": "Step 03 of RAG from Scratch — split documents into chunks for retrieval",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

@@ -12,7 +12,7 @@ Each step is a standalone, runnable app that teaches one core concept.
 |------|---------|----------------|
 | **01** | LLM API basics | Fire your first API call, inspect request/response, understand tokens |
 | **02** | Embeddings | Convert text to vectors, visualize semantic similarity |
-| **03** | Chunking _(coming soon)_ | Split documents intelligently for retrieval |
+| **03** | Chunking | Split documents intelligently for retrieval |
 | **04** | Vector search _(coming soon)_ | Store embeddings in ChromaDB, query by similarity |
 | **05** | RAG pipeline _(coming soon)_ | Connect retrieval → LLM synthesis end-to-end |
 | **06** | Streaming + Chat UI _(coming soon)_ | Stream tokens, multi-turn conversation |
@@ -48,6 +48,15 @@ npm install
 cp .env.example .env
 npm start
 # open http://localhost:3001
+```
+
+## Quick start (Step 03)
+
+```bash
+cd step-03-chunking
+npm install
+npm start
+# open http://localhost:3002
 ```
 
 ---
