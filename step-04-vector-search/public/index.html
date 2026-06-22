@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Step 04 — Vector Search</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <div class="breadcrumb">RAG from Scratch / Step 04</div>
+      <h1>Vector Search with ChromaDB</h1>
+      <p class="subtitle">Chunk a document, embed it with CIS, store it in a vector database, then find the best matches for any question.</p>
+    </header>
+
+    <!-- LESSON -->
+    <section class="card lesson">
+      <h2>Learn it in 5 steps</h2>
+      <ol class="lesson-steps">
+        <li>
+          <strong>Steps 02–03 recap:</strong> you turned text into numbers (embeddings) and cut documents into chunks.
+        </li>
+        <li>
+          <strong>Vector DB = smart filing cabinet.</strong> Each chunk's embedding goes in a drawer. ChromaDB keeps millions of drawers and finds the closest ones fast.
+        </li>
+        <li>
+          <strong>Index time:</strong> chunk → embed each chunk → store in Chroma. You do this once when a document arrives.
+        </li>
+        <li>
+          <strong>Query time:</strong> embed the user's question → ask Chroma "which drawers are closest?" → get back the top chunks.
+        </li>
+        <li>
+          <strong>Step 03 used keyword matching.</strong> This step uses <em>meaning</em> — "PTO days" matches "paid time off" even if the words differ.
+        </li>
+      </ol>
+    </section>
+
+    <!-- STATUS -->
+    <section class="card">
+      <div class="card-header">
+        <h2>System status</h2>
+        <span id="chromaBadge" class="badge badge-gray">checking…</span>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-val" id="chromaStatus">—</span>
+          <span class="stat-label">ChromaDB</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="indexedChunks">—</span>
+          <span class="stat-label">chunks indexed</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="embedModel">—</span>
+          <span class="stat-label">embed model</span>
+        </div>
+      </div>
+      <p class="card-desc hint-block">Chroma not connected? Run <code>docker compose up -d</code> in this folder first.</p>
+    </section>
+
+    <!-- INDEX -->
+    <section class="card">
+      <h2>1 — Index a document</h2>
+      <p class="card-desc">This chunks the text, embeds every chunk via CIS, and stores them in ChromaDB.</p>
+
+      <div class="field">
+        <label for="document">Document</label>
+        <textarea id="document" rows="10"></textarea>
+      </div>
+
+      <button type="button" class="btn-small" onclick="loadSample()">Load PTO sample</button>
+
+      <div class="two-col">
+        <div class="field">
+          <label for="chunkSize">Chunk size <span class="hint"><span id="chunkSizeVal">400</span> chars</span></label>
+          <input type="range" id="chunkSize" min="200" max="600" step="50" value="400" />
+        </div>
+        <div class="field">
+          <label for="overlap">Overlap <span class="hint"><span id="overlapVal">50</span> chars</span></label>
+          <input type="range" id="overlap" min="0" max="150" step="25" value="50" />
+        </div>
+      </div>
+
+      <button id="indexBtn" onclick="buildIndex()">Build index →</button>
+
+      <div id="indexResult" hidden>
+        <h3 class="subheading">Indexed chunks</h3>
+        <div id="indexChunks" class="chunk-preview-list"></div>
+      </div>
+    </section>
+
+    <!-- QUERY -->
+    <section class="card">
+      <h2>2 — Search with a question</h2>
+      <p class="card-desc">Embed your question and retrieve the most similar chunks from ChromaDB.</p>
+
+      <div class="field">
+        <label for="query">Your question</label>
+        <input type="text" id="query" placeholder='e.g. "How many sick days do I get?"' />
+      </div>
+
+      <div class="preset-btns">
+        <button type="button" class="btn-small" onclick="setQuery('How many PTO days do employees get?')">PTO days</button>
+        <button type="button" class="btn-small" onclick="setQuery('Does sick leave roll over?')">Sick leave rollover</button>
+        <button type="button" class="btn-small" onclick="setQuery('Can I take emergency time off without notice?')">Emergency leave</button>
+      </div>
+
+      <button id="searchBtn" onclick="search()">Search →</button>
+
+      <div id="searchResult" hidden>
+        <div class="card-header">
+          <h3 class="subheading inline">Top matches</h3>
+          <span id="searchLatency" class="badge badge-gray">—</span>
+        </div>
+        <div id="hits" class="hit-list"></div>
+      </div>
+    </section>
+
+    <!-- ANATOMY -->
+    <section class="card" id="anatomyPanel">
+      <h2>What happened under the hood</h2>
+      <div class="annotations">
+        <div class="annotation">
+          <code>POST /api/index</code>
+          <p>chunk(text) → CIS embed-text-v1 → ChromaDB collection.add()</p>
+        </div>
+        <div class="annotation">
+          <code>POST /api/query</code>
+          <p>embed(question) → ChromaDB collection.query() → top N by cosine distance</p>
+        </div>
+        <div class="annotation">
+          <code>similarity score</code>
+          <p>Higher = closer match. Computed as 1 − cosine distance. Step 05 sends these chunks to the LLM.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
